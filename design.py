@@ -127,9 +127,9 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"Dynamsoft Barcode Reader", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"WebP Conversion", None))
 #if QT_CONFIG(accessibility)
-        MainWindow.setAccessibleName(QCoreApplication.translate("MainWindow", u"Dynamsoft Barcode Reader", None))
+        MainWindow.setAccessibleName(QCoreApplication.translate("MainWindow", u"WebP Conversion", None))
 #endif // QT_CONFIG(accessibility)
         self.actionAbout.setText(QCoreApplication.translate("MainWindow", u"About", None))
         self.actionOpen_File.setText(QCoreApplication.translate("MainWindow", u"Open File...", None))
