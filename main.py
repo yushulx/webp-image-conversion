@@ -77,6 +77,7 @@ class MainWindow(QMainWindow):
         else:
             self.appendFile(filename)
         event.acceptProposedAction()
+        self.showImage(self.current_file)
 
     def addImage(self, filename):
         if filename.endswith('.webp'):
@@ -97,11 +98,11 @@ class MainWindow(QMainWindow):
 
     def appendFile(self, filename):
         self.addImage(filename)
-        self.showImage(filename)
 
     def currentItemChanged(self, current, previous):
         filename = current.text()
         self.appendFile(filename)
+        self.showImage(self.current_file)
 
     def openFile(self):
         filename = QFileDialog.getOpenFileName(self, 'Open File',
@@ -112,6 +113,7 @@ class MainWindow(QMainWindow):
 
         filename = filename[0]
         self.appendFile(filename)
+        self.showImage(self.current_file)
 
     def appendFolder(self, folder):
         if os.path.isdir(folder):
@@ -133,6 +135,7 @@ class MainWindow(QMainWindow):
             return
 
         self.appendFolder(dir)
+        self.showImage(self.current_file)
 
     def resizeImage(self, pixmap):
         lwidth = self.ui.label.width()
