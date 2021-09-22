@@ -12,6 +12,34 @@ import cv2
 
 from PySide2.QtCore import QObject, QThread, Signal
 
+class Worker(QObject):
+    finished = Signal()
+    progress = Signal(object)
+
+    def __init__(self, files, quality):
+        super(Worker, self).__init__()
+        self.files = files
+        self.total = len(files)
+        self.isRunning = True
+        self.quality = quality
+
+    def run(self):
+        print('Running worker thread...')
+        count = 0
+        keys = list(self.files.keys())
+        while self.isRunning and len(self.files) > 0:
+            filename = keys[count]
+            count += 1
+            print(filename)
+            frame = cv2.imread(filename)
+            webp_file = filename.split('.')[0] + '.webp'
+            cv2.imwrite(webp_file, frame, [cv2.IMWRITE_WEBP_QUALITY, self.quality])
+            self.progress.emit((webp_file, count, self.total))
+            self.files.pop(filename)
+
+        print('Quit worker thread...')
+        self.finished.emit()
+
 class MainWindow(QMainWindow):
 
     def __init__(self, license):
@@ -26,6 +54,9 @@ class MainWindow(QMainWindow):
         self.current_file = None
         self._pixmap = None
         self._path = os.path.dirname(os.path.realpath(__file__))
+        self.progress_dialog = None
+        self.worker = None
+        self.isProcessing = False
 
         self.ui.actionOpen_File.triggered.connect(self.openFile)
         self.ui.actionOpen_Folder.triggered.connect(self.openFolder)
@@ -33,6 +64,48 @@ class MainWindow(QMainWindow):
         self.ui.pushButton.clicked.connect(self.convertOne)
         self.ui.pushButton_all.clicked.connect(self.convertAll)
         self.ui.listWidget.currentItemChanged.connect(self.currentItemChanged)
+
+    def reportProgress(self, data):
+        filename, completed, total = data
+        self.addImage(filename)
+        if not self.isProcessing:
+            return
+
+        progress = completed
+        self.progress_dialog.setLabelText(str(completed) +"/"+ str(total))
+        self.progress_dialog.setValue(progress)
+        if completed == total:
+            self.onProgressDialogCanceled()
+            self.showMessageBox('WebP Conversion', "Done!")
+
+    def onProgressDialogCanceled(self):
+        self.isProcessing = False
+        self.worker.isRunning = False
+        self.progress_dialog.cancel()
+
+    def runLongTask(self):
+        if (len(self._all_images) == 0):
+            return
+            
+        self.isProcessing = True
+        self.progress_dialog = QProgressDialog('Progress', 'Cancel', 0, len(self._all_images), self)
+        self.progress_dialog.setLabelText('Progress')
+        self.progress_dialog.setCancelButtonText('Cancel')
+        self.progress_dialog.setRange(0, len(self._all_images))
+        self.progress_dialog.setValue(0)
+        self.progress_dialog.setMinimumDuration(0)
+        self.progress_dialog.show()
+        self.progress_dialog.canceled.connect(self.onProgressDialogCanceled)
+
+        self.thread = QThread()
+        self.worker = Worker(self._all_images, int(self.ui.label_slider.text()))
+        self.worker.moveToThread(self.thread)
+        self.thread.started.connect(self.worker.run)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.progress.connect(self.reportProgress)
+        self.thread.start()
 
     def convert(self, filename):
         if (filename is None):
@@ -49,10 +122,11 @@ class MainWindow(QMainWindow):
         if (self.current_file is None):
             self.showMessageBox('Error', "No item selected")
         else:
-            for filename in self._all_images:
-                self.convert(filename)
+            # for filename in self._all_images:
+            #     self.convert(filename)
 
-            self.showMessageBox('WebP Conversion', "Done!")
+            # self.showMessageBox('WebP Conversion', "Done!")
+            self.runLongTask()
 
     def convertOne(self):
         if (self.current_file is None):
@@ -101,8 +175,7 @@ class MainWindow(QMainWindow):
 
     def currentItemChanged(self, current, previous):
         filename = current.text()
-        self.appendFile(filename)
-        self.showImage(self.current_file)
+        self.showImage(filename)
 
     def openFile(self):
         filename = QFileDialog.getOpenFileName(self, 'Open File',
