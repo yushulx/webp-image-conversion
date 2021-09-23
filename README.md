@@ -14,4 +14,4 @@ pyside2-uic design.ui -o design.py
 python main.py 
 ```
 
-![webp conversion](https://www.dynamsoft.com/blog/wp-content/uploads/2021/09/webp-conversion.webp)
+![webp conversion](https://www.dynamsoft.com/blog/wp-content/uploads/2021/09/webp-conversion.gif)
