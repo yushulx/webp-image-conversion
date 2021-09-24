@@ -42,7 +42,7 @@ class Worker(QObject):
 
 class MainWindow(QMainWindow):
 
-    def __init__(self, license):
+    def __init__(self):
         super(MainWindow, self).__init__()
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
@@ -258,7 +258,7 @@ class MainWindow(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = MainWindow(license)
+    window = MainWindow()
     window.show()
     sys.exit(app.exec_())
 
