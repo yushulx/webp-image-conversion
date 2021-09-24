@@ -201,13 +201,13 @@ class MainWindow(QMainWindow):
             self.appendFile(folder)
 
     def openFolder(self):
-        dir = QFileDialog.getExistingDirectory(self, 'Open Folder',
+        directory = QFileDialog.getExistingDirectory(self, 'Open Folder',
                                                self._path, QFileDialog.ShowDirsOnly)
-        if dir is '':
+        if directory is '':
             self.showMessageBox('Open Folder...', "No folder selected")
             return
 
-        self.appendFolder(dir)
+        self.appendFolder(directory)
         self.showImage(self.current_file)
 
     def resizeImage(self, pixmap):
